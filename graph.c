@@ -82,9 +82,9 @@ void dfs(Graph G, int v0)
             continue;
 
         ++component;
-        MyPrintf("Component %d:", component);
+        printf("Component %d:", component);
         dfs2(G, start);
-        MyPrintf("\n");
+        printf("\n");
     }
 }
 
@@ -98,7 +98,7 @@ void dfs2(Graph G, int v)
         Error("Failed\n");
 
     G->visited[v] = 1;
-    MyPrintf(" %d", v);
+    printf(" %d", v);
 
     for(int w = 0; w < G->nodes; ++w)
     {
@@ -130,9 +130,9 @@ void dfsst(Graph G, int v0)
             continue;
 
         ++component;
-        MyPrintf("Component %d:\n", component);
+        printf("Component %d:\n", component);
         dfsst2(G, start);
-        MyPrintf("\n");
+        printf("\n");
     }
 }
 
@@ -151,7 +151,7 @@ void dfsst2(Graph G, int v)
     for(w = 0; w < G->nodes; ++w)
         if(G->adj[v][w] == 1 && G->visited[w] == 0)
         {
-            MyPrintf("Edge: (%d,%d)\n", v, w);
+            printf("Edge: (%d,%d)\n", v, w);
             dfsst2(G, w);
         }
     G->visited[v] = 2;
@@ -182,7 +182,7 @@ void bfs(Graph G, int v0)
             Error("Failed\n");
 
         ++component;
-        MyPrintf("Component %d:", component);
+        printf("Component %d:", component);
 
         Enqueue(start, queue);
         G->visited[start] = 1;
@@ -194,7 +194,7 @@ void bfs(Graph G, int v0)
             if(v < 0 || v >= G->nodes)
                 Error("Failed\n");
 
-            MyPrintf(" %d", v);
+            printf(" %d", v);
 
             for(int w = 0; w < G->nodes; ++w)
             {
@@ -209,7 +209,7 @@ void bfs(Graph G, int v0)
         }
 
         RemoveQueue(&queue);
-        MyPrintf("\n");
+        printf("\n");
     }
 }
 
@@ -238,7 +238,7 @@ void bfsst(Graph G, int v0)
             Error("Failed\n");
 
         ++component;
-        MyPrintf("Component %d:\n", component);
+        printf("Component %d:\n", component);
 
         Enqueue(start, queue);
         G->visited[start] = 1;
@@ -255,7 +255,7 @@ void bfsst(Graph G, int v0)
                 if(G->adj[v][w] == 1 && G->visited[w] == 0)
                 {
                     G->visited[w] = 1;
-                    MyPrintf("Edge: (%d,%d)\n", v, w);
+                    printf("Edge: (%d,%d)\n", v, w);
                     Enqueue(w, queue);
                 }
             }
@@ -264,6 +264,6 @@ void bfsst(Graph G, int v0)
         }
 
         RemoveQueue(&queue);
-        MyPrintf("\n");
+        printf("\n");
     }
 }
