@@ -1,313 +1,254 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include "err.h"
 #include "graph.h"
 #include "lqueue.h"
 
 struct GraphRecord
 {
-      int adj[max][max];
-      int visited[max];
-      int parent[max];
-      int nodes;
+    int adj[max][max];
+    int visited[max];
+    int nodes;
 };
 
 Graph CreateGraph(int NodesCount)
 {
-      Graph G;
+    Graph G;
 
-      G = malloc(sizeof(struct GraphRecord));
-      if(G == NULL) Error( "Out of space!!!" );
+    G = malloc(sizeof(struct GraphRecord));
+    if (G == NULL)
+        Error("Out of space!!!");
 
-      G->nodes = NodesCount;
-
-      for(int i = 0; i < max; ++i)
-      {
-          G->visited[i] = 0;
-          G->parent[i] = -1;
-          for(int j = 0; j < max; ++j)
-              G->adj[i][j] = 0;
-      }
-
-      return G;
+    G->nodes = NodesCount;
+    return G;
 }
-
 
 void DisposeGraph(Graph G)
 {
-     free(G);
+    free(G);
 }
 
-
-/* a function to build adjacency matrix of a graph */
+/* построение матрицы смежности */
 void buildadjm(Graph G)
-   {
-     int i,j;
-     for(i=0;i<G->nodes;i++)
-         for(j=0;j<G->nodes;j++)
-          {
-           printf("enter 1 if there is an edge from %d to %d, otherwise enter 0 \n", i,j);
-           scanf("%d",&(G->adj[i][j]));
-           }
-      }
+{
+    int i, j;
+    for (i = 0; i < G->nodes; i++)
+        for (j = 0; j < G->nodes; j++)
+            scanf("%d", &(G->adj[i][j]));
+}
 
 void printadjm(Graph G)
 {
-     int i,j;
-     for(i=0;i<G->nodes;i++)
-     {
-         for(j=0;j<G->nodes;j++)
-          printf(" %d",G->adj[i][j]);
-         putchar('\n');
-     }
+    int i, j;
+    for (i = 0; i < G->nodes; i++)
+    {
+        for (j = 0; j < G->nodes; j++)
+            printf(" %d", G->adj[i][j]);
+        putchar('\n');
+    }
 }
-
 
 void ClearVisited(Graph G)
 {
-     if(G == NULL) return;
-
-     for(int n=0; n<G->nodes; n++)
-     {
-         G->visited[n] = 0;
-         G->parent[n] = -1;
-     }
+    int n;
+    for (n = 0; n < G->nodes; n++)
+        G->visited[n] = 0;
 }
 
- int NormalizeStart(Graph G, int v0)
-{
-    if(G == NULL || G->nodes == 0) return -1;
-    if(v0 < 0 || v0 >= G->nodes) return 0;
-    return v0;
-}
+/* --------------------- DFS --------------------- */
 
-void dfs_component(Graph G, int start, int componentIndex)
+void dfs2(Graph G, int v)
 {
-    MyPrintf("Component %d:", componentIndex);
-    dfs2(G, start);
-    MyPrintf("\n");
+    int w;
+    G->visited[v] = 1; // исправлено — теперь помечаем вершину как посещённую при входе
+    printf("%d ", v);
+
+    for (w = 0; w < G->nodes; w++)
+        if (G->adj[v][w] == 1 && G->visited[w] == 0)
+            dfs2(G, w);
+
+    G->visited[v] = 2;
 }
 
 void dfs(Graph G, int v0)
 {
-    if(G == NULL) return;
-
     ClearVisited(G);
+    int i;
 
-    int start = NormalizeStart(G, v0);
-    if(start == -1) return;
-
-    int componentIndex = 1;
-
-    if(G->visited[start] == 0)
+    for (i = v0; i < G->nodes; i++)
     {
-        dfs_component(G, start, componentIndex++);
+        if (G->visited[i] == 0)
+        {
+            dfs2(G, i);
+            printf("\n");
+        }
     }
 
-    for(int i = 0; i < G->nodes; ++i)
+    for (i = 0; i < v0; i++)
     {
-        if(G->visited[i] == 0)
+        if (G->visited[i] == 0)
         {
-            dfs_component(G, i, componentIndex++);
+            dfs2(G, i);
+            printf("\n");
         }
     }
 }
 
-void dfs2(Graph G, int v)
+/* --------------------- DFSSPANNING TREE --------------------- */
+
+void dfs2st(Graph G, int v)
 {
-    if(G == NULL) return;
-
+    int w;
     G->visited[v] = 1;
-    MyPrintf(" %d", v);
 
-    for(int w = 0; w < G->nodes; w++)
-    {
-        if(G->adj[v][w] == 1 && G->visited[w] == 0)
+    for (w = 0; w < G->nodes; w++)
+        if (G->adj[v][w] == 1 && G->visited[w] == 0)
         {
-            dfs2(G, w);
+            printf("(%d, %d)\n", v, w);
+            dfs2st(G, w);
         }
-    }
 
     G->visited[v] = 2;
-}
-
-int componentHasEdges;
-
-void dfsst_component(Graph G, int start, int componentIndex)
-{
-    MyPrintf("Component %d:\n", componentIndex);
-    componentHasEdges = 0;
-    G->parent[start] = -1;
-    dfsst2(G, start);
-    if(!componentHasEdges)
-      MyPrintf("(no edges)\n");    
-      MyPrintf("\n");
 }
 
 void dfsst(Graph G, int v0)
 {
-    if(G == NULL) return;
-
     ClearVisited(G);
+    int i;
 
-    int start = NormalizeStart(G, v0);
-    if(start == -1) return;
-
-    int componentIndex = 1;
-
-    if(G->visited[start] == 0)
+    for (i = v0; i < G->nodes; i++)
     {
-        dfsst_component(G, start, componentIndex++);
+        if (G->visited[i] == 0)
+        {
+            dfs2st(G, i);
+            printf("\n");
+        }
     }
 
-    for(int i = 0; i < G->nodes; ++i)
+    for (i = 0; i < v0; i++)
     {
-        if(G->visited[i] == 0)
+        if (G->visited[i] == 0)
         {
-            dfsst_component(G, i, componentIndex++);
+            dfs2st(G, i);
+            printf("\n");
         }
     }
 }
 
-void dfsst2(Graph G, int v)
-{
-    if(G == NULL) return;
-
-    G->visited[v] = 1;
-
-    for(int w = 0; w < G->nodes; ++w)
-    {
-        if(G->adj[v][w] == 1 && G->visited[w] == 0)
-        {
-            G->parent[w] = v;
-            componentHasEdges = 1;
-            MyPrintf("%d - %d\n", v, w);
-            dfsst2(G, w);
-        }
-    }
-
-    G->visited[v] = 2;
-}
-
-static void bfs_component(Graph G, int start, int componentIndex)
-{
-    LQueue queue = CreateQueue();
-
-    MyPrintf("Component %d:", componentIndex);
-
-    G->visited[start] = 1;
-    Enqueue(start, queue);
-
-    while(!IsEmptyQueue(queue))
-    {
-        int v = FrontAndDequeue(queue);
-        MyPrintf(" %d", v);
-
-        for(int w = 0; w < G->nodes; ++w)
-        {
-            if(G->adj[v][w] == 1 && G->visited[w] == 0)
-            {
-                G->visited[w] = 1;
-                Enqueue(w, queue);
-            }
-        }
-
-        G->visited[v] = 2;
-    }
-
-    RemoveQueue(&queue);
-    MyPrintf("\n");
-}
+/* --------------------- BFS --------------------- */
 
 void bfs(Graph G, int v0)
 {
-    if(G == NULL) return;
-
     ClearVisited(G);
+    Queue *q = CreateQ();
+    int i;
 
-    int start = NormalizeStart(G, v0);
-    if(start == -1) return;
-
-    int componentIndex = 1;
-
-    if(G->visited[start] == 0)
+    for (i = v0; i < G->nodes; i++)
     {
-        bfs_component(G, start, componentIndex++);
-    }
-
-    for(int i = 0; i < G->nodes; ++i)
-    {
-        if(G->visited[i] == 0)
+        if (G->visited[i] == 0)
         {
-            bfs_component(G, i, componentIndex++);
-        }
-    }
-}
+            Enqueue(q, i);
+            G->visited[i] = 1;
 
-void bfsst_component(Graph G, int start, int componentIndex)
-{
-    LQueue queue = CreateQueue();
-    int hasEdges = 0;
-
-    MyPrintf("Component %d:\n", componentIndex);
-
-    G->visited[start] = 1;
-    Enqueue(start, queue);
-
-    while(!IsEmptyQueue(queue))
-    {
-        int v = FrontAndDequeue(queue);
-
-        for(int w = 0; w < G->nodes; ++w)
-        {
-            if(G->adj[v][w] == 1 && G->visited[w] == 0)
+            while (!EmptyQ(q))
             {
-                G->visited[w] = 1;
-                Enqueue(w, queue);
-                MyPrintf("%d - %d\n", v, w);
-                hasEdges = 1;
-            }
-        }
+                int v = Dequeue(q);
+                printf("%d ", v);
 
-        G->visited[v] = 2;
+                for (int w = 0; w < G->nodes; w++)
+                {
+                    if (G->adj[v][w] == 1 && G->visited[w] == 0)
+                    {
+                        Enqueue(q, w);
+                        G->visited[w] = 1;
+                    }
+                }
+            }
+            printf("\n");
+        }
     }
 
-    if(!hasEdges) MyPrintf("(no edges)\n");
+    for (i = 0; i < v0; i++)
+    {
+        if (G->visited[i] == 0)
+        {
+            Enqueue(q, i);
+            G->visited[i] = 1;
 
-    RemoveQueue(&queue);
-    MyPrintf("\n");
+            while (!EmptyQ(q))
+            {
+                int v = Dequeue(q);
+                printf("%d ", v);
+
+                for (int w = 0; w < G->nodes; w++)
+                {
+                    if (G->adj[v][w] == 1 && G->visited[w] == 0)
+                    {
+                        Enqueue(q, w);
+                        G->visited[w] = 1;
+                    }
+                }
+            }
+            printf("\n");
+        }
+    }
 }
+
+/* --------------------- BFS SPANNING TREE --------------------- */
 
 void bfsst(Graph G, int v0)
 {
-    if(G == NULL) return;
-
     ClearVisited(G);
+    Queue *q = CreateQ();
+    int i;
 
-    int start = NormalizeStart(G, v0);
-    if(start == -1) return;
-
-    int componentIndex = 1;
-
-    if(G->visited[start] == 0)
+    for (i = v0; i < G->nodes; i++)
     {
-        bfsst_component(G, start, componentIndex++);
-    }
-
-    for(int i = 0; i < G->nodes; ++i)
-    {
-        if(G->visited[i] == 0)
+        if (G->visited[i] == 0)
         {
-            bfsst_component(G, i, componentIndex++);
+            Enqueue(q, i);
+            G->visited[i] = 1;
+
+            while (!EmptyQ(q))
+            {
+                int v = Dequeue(q);
+
+                for (int w = 0; w < G->nodes; w++)
+                {
+                    if (G->adj[v][w] == 1 && G->visited[w] == 0)
+                    {
+                        printf("(%d, %d)\n", v, w);
+                        Enqueue(q, w);
+                        G->visited[w] = 1;
+                    }
+                }
+            }
+            printf("\n");
         }
     }
-}
 
-void MyPrintf(const char *format, ...)
-{
-    va_list args;
-    va_start(args, format);
-    vprintf(format, args);
-    va_end(args);
+    for (i = 0; i < v0; i++)
+    {
+        if (G->visited[i] == 0)
+        {
+            Enqueue(q, i);
+            G->visited[i] = 1;
+
+            while (!EmptyQ(q))
+            {
+                int v = Dequeue(q);
+
+                for (int w = 0; w < G->nodes; w++)
+                {
+                    if (G->adj[v][w] == 1 && G->visited[w] == 0)
+                    {
+                        printf("(%d, %d)\n", v, w);
+                        Enqueue(q, w);
+                        G->visited[w] = 1;
+                    }
+                }
+            }
+            printf("\n");
+        }
+    }
 }
