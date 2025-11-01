@@ -63,6 +63,7 @@ void printadjm(Graph G)
      }
 }
 
+
 void ClearVisited(Graph G)
 {
      if(G == NULL) return;
@@ -74,38 +75,18 @@ void ClearVisited(Graph G)
      }
 }
 
-static int NormalizeStart(Graph G, int v0)
+ int NormalizeStart(Graph G, int v0)
 {
     if(G == NULL || G->nodes == 0) return -1;
     if(v0 < 0 || v0 >= G->nodes) return 0;
     return v0;
 }
 
-static void PrintComponentHeader(int componentIndex)
+void dfs_component(Graph G, int start, int componentIndex)
 {
     MyPrintf("Component %d:", componentIndex);
-}
-
-static void PrintComponentHeaderWithNewline(int componentIndex)
-{
-    MyPrintf("Component %d:\n", componentIndex);
-}
-
-static void PrintEmptyTreeNotice(void)
-{
-    MyPrintf("(no edges)\n");
-}
-
-static void PrintComponentSeparator(void)
-{
-    MyPrintf("\n");
-}
-
-static void dfs_component(Graph G, int start, int componentIndex)
-{
-    PrintComponentHeader(componentIndex);
     dfs2(G, start);
-    PrintComponentSeparator();
+    MyPrintf("\n");
 }
 
 void dfs(Graph G, int v0)
@@ -151,17 +132,17 @@ void dfs2(Graph G, int v)
     G->visited[v] = 2;
 }
 
-static int componentHasEdges;
+int componentHasEdges;
 
-static void dfsst_component(Graph G, int start, int componentIndex)
+void dfsst_component(Graph G, int start, int componentIndex)
 {
-    PrintComponentHeaderWithNewline(componentIndex);
+    MyPrintf("Component %d:\n", componentIndex);
     componentHasEdges = 0;
     G->parent[start] = -1;
     dfsst2(G, start);
     if(!componentHasEdges)
-        PrintEmptyTreeNotice();
-    PrintComponentSeparator();
+      MyPrintf("(no edges)\n");    
+      MyPrintf("\n");
 }
 
 void dfsst(Graph G, int v0)
@@ -213,7 +194,7 @@ static void bfs_component(Graph G, int start, int componentIndex)
 {
     LQueue queue = CreateQueue();
 
-    PrintComponentHeader(componentIndex);
+    MyPrintf("Component %d:", componentIndex);
 
     G->visited[start] = 1;
     Enqueue(start, queue);
@@ -236,7 +217,7 @@ static void bfs_component(Graph G, int start, int componentIndex)
     }
 
     RemoveQueue(&queue);
-    PrintComponentSeparator();
+    MyPrintf("\n");
 }
 
 void bfs(Graph G, int v0)
@@ -264,12 +245,12 @@ void bfs(Graph G, int v0)
     }
 }
 
-static void bfsst_component(Graph G, int start, int componentIndex)
+void bfsst_component(Graph G, int start, int componentIndex)
 {
     LQueue queue = CreateQueue();
     int hasEdges = 0;
 
-    PrintComponentHeaderWithNewline(componentIndex);
+    MyPrintf("Component %d:\n", componentIndex);
 
     G->visited[start] = 1;
     Enqueue(start, queue);
@@ -292,11 +273,10 @@ static void bfsst_component(Graph G, int start, int componentIndex)
         G->visited[v] = 2;
     }
 
-    if(!hasEdges)
-        PrintEmptyTreeNotice();
+    if(!hasEdges) MyPrintf("(no edges)\n");
 
     RemoveQueue(&queue);
-    PrintComponentSeparator();
+    MyPrintf("\n");
 }
 
 void bfsst(Graph G, int v0)
